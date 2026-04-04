@@ -409,6 +409,49 @@ body.view-mode .edit-only{display:none!important}
   canvas { max-width: 100%; height: auto !important; }
 }
 </style>
+
+<!-- Firebase Auth Guard -->
+<script src="https://cdn.jsdelivr.net/npm/firebase@10.7.1/firebase-app-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/firebase@10.7.1/firebase-auth-compat.js"></script>
+<script>
+(function(){
+  var FB = {
+    apiKey:            "AIzaSyAEEosxGfj4jwqdnHDdmtJ_yrcaDLTl9I4",
+    authDomain:        "buildtrack-pro-4b935.firebaseapp.com",
+    projectId:         "buildtrack-pro-4b935",
+    storageBucket:     "buildtrack-pro-4b935.firebasestorage.app",
+    messagingSenderId: "359992535712",
+    appId:             "1:359992535712:web:aa362e8c0ba355471437c5"
+  };
+  try {
+    if (!firebase.apps.length) firebase.initializeApp(FB);
+    firebase.auth().onAuthStateChanged(function(user) {
+      if (!user) {
+        // ไม่ได้ login → redirect ไปหน้า login ทันที
+        window.location.replace('login.html');
+      } else {
+        // login แล้ว — แสดง email ใน header ถ้ามี element
+        var el = document.getElementById('auth-user-email');
+        if (el) el.textContent = user.email;
+        // ปุ่ม logout
+        var logoutBtn = document.getElementById('firebase-logout-btn');
+        if (logoutBtn) {
+          logoutBtn.style.display = 'inline-flex';
+          logoutBtn.addEventListener('click', function() {
+            if (confirm('ออกจากระบบใช่ไหม?')) {
+              firebase.auth().signOut().then(function() {
+                window.location.replace('login.html');
+              });
+            }
+          });
+        }
+      }
+    });
+  } catch(e) {
+    console.warn('Firebase Auth Guard:', e.message);
+  }
+})();
+</script>
 </head>
 <body>
 <div class="bg-overlay"></div>
@@ -440,6 +483,8 @@ body.view-mode .edit-only{display:none!important}
     <a id="dev-login-link" href="#" onclick="event.preventDefault();showDevLoginModal()" style="font-size:11px;font-weight:600;color:#9b66ff;text-decoration:none;padding:5px 10px;border-radius:6px;border:1px solid rgba(120,80,255,.3);background:rgba(120,80,255,.08);transition:color .2s" title="Developer Mode">🛠️ Dev</a>
     <a id="lockin-link" href="#" onclick="event.preventDefault();showLockModal()" style="font-size:11px;font-weight:600;color:var(--tx2);text-decoration:none;padding:5px 10px;border-radius:6px;transition:color .2s" onmouseover="this.style.color='var(--blue)'" onmouseout="this.style.color='var(--tx2)'">🔓 Login</a>
     <button id="logout-btn" class="btn edit-only" onclick="doLogout()" style="display:none;background:rgba(255,68,68,.12);color:#ff6666;border:1px solid rgba(255,68,68,.3);font-size:11px">🔒 Logout</button>
+    <span id="auth-user-email" style="font-size:10px;color:rgba(255,255,255,.35);font-family:monospace;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:inline-block;vertical-align:middle"></span>
+    <button id="firebase-logout-btn" style="display:none;background:rgba(255,68,68,.12);border:1px solid rgba(255,68,68,.3);color:#ff6666;border-radius:6px;padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit">🔒 ออกจากระบบ</button>
     <button id="lock-btn" class="btn btn-o edit-only" onclick="applyViewMode()" style="display:none">🔒 ล็อก</button>
     <button class="btn edit-only" onclick="openACCT()" style="background:rgba(0,212,255,.15);color:var(--cyan);border:1px solid rgba(0,212,255,.4);font-size:11px">💰 ACCT</button>
     <button class="btn edit-only" onclick="openCategoryPage('structure')" style="background:rgba(0,188,212,.15);color:#00bcd4;border:1px solid rgba(0,188,212,.4);font-size:11px">🏗️ งานโครงสร้าง</button>
@@ -6444,27 +6489,4 @@ document.addEventListener('DOMContentLoaded', function(){
 
     <!-- Guide -->
     <div style="height:1px;background:rgba(255,255,255,.07);margin:18px 0"></div>
-    <div style="font-size:11px;font-weight:700;color:#8899aa;text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px">📖 วิธีรับ URL</div>
-    <div style="display:flex;flex-direction:column;gap:7px;margin-bottom:14px">
-      <div style="display:flex;gap:10px;align-items:flex-start">
-        <div style="width:20px;height:20px;background:rgba(56,139,253,.2);border:1px solid rgba(56,139,253,.4);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;color:#388bfd;flex-shrink:0">1</div>
-        <div style="font-size:11px;color:#8899aa;line-height:1.6">ไปที่ <a href="https://console.firebase.google.com" target="_blank" style="color:#388bfd;font-weight:700">console.firebase.google.com</a> → สร้าง Project</div>
-      </div>
-      <div style="display:flex;gap:10px;align-items:flex-start">
-        <div style="width:20px;height:20px;background:rgba(56,139,253,.2);border:1px solid rgba(56,139,253,.4);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;color:#388bfd;flex-shrink:0">2</div>
-        <div style="font-size:11px;color:#8899aa;line-height:1.6">เลือก <strong style="color:#e8f0fe">Realtime Database</strong> → Create Database → test mode</div>
-      </div>
-      <div style="display:flex;gap:10px;align-items:flex-start">
-        <div style="width:20px;height:20px;background:rgba(0,230,118,.15);border:1px solid rgba(0,230,118,.3);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;color:#00e676;flex-shrink:0">3</div>
-        <div style="font-size:11px;color:#8899aa;line-height:1.6">Copy <strong style="color:#00d4ff">Database URL</strong> (https://...) วางในช่องบน แล้วกด บันทึก</div>
-      </div>
-    </div>
-    <div style="padding:10px 14px;background:rgba(255,214,0,.05);border:1px solid rgba(255,214,0,.2);border-radius:8px;font-size:11px;color:#8899aa;line-height:1.6">
-      💡 ทุกเครื่องที่ใส่ URL เดียวกัน จะซิงค์ข้อมูลกัน Real-time อัตโนมัติ
-    </div>
-
-  </div>
-</div>
-
-</body>
-</html>
+ 
