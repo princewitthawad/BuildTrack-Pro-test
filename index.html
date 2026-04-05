@@ -326,11 +326,11 @@ footer{padding:32px 24px;text-align:center;border-top:1px solid var(--border2);f
           <div class="fgrp"><label class="fl">ชื่อบริษัท *</label><input class="fi2" id="rco" placeholder="บริษัท ก่อสร้าง จำกัด" autocomplete="organization"></div>
           <div class="fgrp"><label class="fl">อีเมล *</label><input class="fi2" id="rem" type="email" placeholder="email@company.com" autocomplete="email"></div>
           <div class="fgrp"><label class="fl">รหัสผ่าน * (อย่างน้อย 8 ตัว)</label><input class="fi2" id="rpw" type="password" placeholder="รหัสผ่าน" autocomplete="new-password"></div>
-          <div class="fgrp"><label class="fl">Plan</label>
+          <div class="fgrp"><label class="fl">Plan <span id="rp-period-label" style="color:var(--tx3);font-weight:400;text-transform:none;letter-spacing:0"></span></label>
             <div class="ps2">
-              <div class="po on" id="op-s" onclick="selP('starter')"><div class="pon">Starter</div><div class="pop">฿990/เดือน</div></div>
-              <div class="po" id="op-p" onclick="selP('pro')"><div class="pon">Pro</div><div class="pop">฿1,990/เดือน</div></div>
-              <div class="po" id="op-e" onclick="selP('enterprise')"><div class="pon">Enterprise</div><div class="pop">฿3,990/เดือน</div></div>
+              <div class="po on" id="op-s" onclick="selP('starter')"><div class="pon">Starter</div><div class="pop" id="rp-s">฿990</div></div>
+              <div class="po" id="op-p" onclick="selP('pro')"><div class="pon">Pro</div><div class="pop" id="rp-p">฿1,990</div></div>
+              <div class="po" id="op-e" onclick="selP('enterprise')"><div class="pon">Enterprise</div><div class="pop" id="rp-e">฿3,990</div></div>
             </div>
           </div>
           <div class="ferr" id="re"></div>
@@ -535,6 +535,8 @@ function setPT(t){
     document.getElementById('pr-'+x[0]).innerHTML='\u0e3f'+pr.toLocaleString()+'<span>/บริษัท</span>';
     document.getElementById('pe-'+x[0]).textContent=pd[t];
   });
+  // sync ราคาใน plan selector ของฟอร์มสมัครด้วย
+  updateRegPrices();
 }
 
 // ════ PLAN SELECT ════
@@ -542,6 +544,20 @@ function selP(p){
   _plan=p;
   ['s','p','e'].forEach(function(x,i){
     document.getElementById('op-'+x).classList.toggle('on',['starter','pro','enterprise'][i]===p);
+  });
+  updateRegPrices();
+}
+function updateRegPrices(){
+  var periodLabel={monthly:'/เดือน',quarterly:'/3เดือน',yearly:'/ปี'};
+  var lbl=periodLabel[_period]||'/เดือน';
+  var el=document.getElementById('rp-period-label');
+  if(el){
+    var fullLabel={monthly:'(รายเดือน)',quarterly:'(3 เดือน -10%)',yearly:'(รายปี -20%)'};
+    el.textContent=fullLabel[_period]||'';
+  }
+  [['s','starter'],['p','pro'],['e','enterprise']].forEach(function(x){
+    var el2=document.getElementById('rp-'+x[0]);
+    if(el2)el2.textContent='฿'+PX[x[1]][_period].toLocaleString()+lbl;
   });
 }
 function openWithPlan(p){selP(p);openAM('register');}
@@ -575,11 +591,13 @@ function doRegStep1(){
   if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)){err.textContent='รูปแบบอีเมลไม่ถูกต้อง';return;}
   if(pw.length<8){err.textContent='รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร';return;}
   err.textContent='';
-  // แสดง billing date
+  // แสดง billing date — ใช้ _period และ _plan ที่เลือกไว้จริง
   var bd=new Date(Date.now()+30*864e5);
   var bds=bd.getDate()+'/'+(bd.getMonth()+1)+'/'+bd.getFullYear();
-  document.getElementById('rf-billing-info').textContent='วันที่เก็บเงิน: '+bds+' (฿'+PX[_plan]['monthly'].toLocaleString()+'/เดือน)';
-  document.getElementById('rf-s2-sub').textContent='ทดลองฟรี 30 วัน จากนั้นจะหัก ฿'+PX[_plan]['monthly'].toLocaleString()+' อัตโนมัติ';
+  var price=PX[_plan][_period];
+  var periodLabel={monthly:'ต่อเดือน',quarterly:'ทุก 3 เดือน',yearly:'ต่อปี'};
+  document.getElementById('rf-billing-info').textContent='วันที่เก็บเงิน: '+bds+' (฿'+price.toLocaleString()+' '+periodLabel[_period]+')';
+  document.getElementById('rf-s2-sub').textContent='ทดลองฟรี 30 วัน จากนั้นจะหัก ฿'+price.toLocaleString()+' '+periodLabel[_period]+' อัตโนมัติ';
   // ไปหน้า Step 2
   document.getElementById('rf-s1').style.display='none';
   document.getElementById('rf-s2').style.display='block';
