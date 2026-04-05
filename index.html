@@ -436,9 +436,13 @@ function initFB(){
   try{
     if(typeof firebase==='undefined')return;
     if(FB.apiKey==='YOUR_API_KEY')return;
-    
     if(!firebase.apps.length)firebase.initializeApp(FB);
-    auth=firebase.auth(); db=firebase.firestore();
+    auth=firebase.auth();
+    db=firebase.firestore();
+    // ปิด session อัตโนมัติ — ไม่จำ login ข้ามหน้า
+    auth.setPersistence(firebase.auth.Auth.Persistence.NONE).catch(function(){});
+    // ถ้ามี session เก่าค้างอยู่ ให้ sign out ออกทันที
+    auth.signOut().catch(function(){});
   }catch(e){console.warn('Firebase:',e.message);}
 }
 if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',initFB);}else{initFB();}
