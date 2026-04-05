@@ -545,7 +545,7 @@ async function doLog(){
     if(auth){
       await auth.signInWithEmailAndPassword(em,pw);
       toast('ยินดีต้อนรับกลับ!','ok');
-      setTimeout(function(){closeAM();},1000);
+      setTimeout(function(){closeAM();window.location.href='Dashboard_template.html';},1000);
     }else{
       err.textContent='กรุณาตั้งค่า Firebase Config ในไฟล์ก่อน';
     }
