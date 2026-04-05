@@ -515,23 +515,36 @@ async function doReg(){
   btn.disabled=true;btn.textContent='กำลังสมัคร...';
   try{
     if(auth&&db){
+      var trialEnd=new Date(Date.now()+30*864e5);
+      // LOCAL persistence — จำ session ข้ามหน้าได้
+      await auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
       var cred=await auth.createUserWithEmailAndPassword(em,pw);
       var uid=cred.user.uid;
       var cid=co.toLowerCase().replace(/[^a-z0-9]/g,'_').slice(0,20)+'_'+Date.now().toString(36);
-      await db.collection('companies').doc(cid).set({companyId:cid,companyName:co,ownerUid:uid,ownerName:fn+' '+ln,ownerEmail:em,plan:_plan,planType:_period,status:'trial',trialEnd:new Date(Date.now()+30*864e5),createdAt:firebase.firestore.FieldValue.serverTimestamp()});
-      await db.collection('users').doc(uid).set({uid:uid,email:em,companyId:cid,name:fn+' '+ln,role:'admin',createdAt:firebase.firestore.FieldValue.serverTimestamp()});
-      document.getElementById('rf').style.display='none';
-      document.getElementById('suc-t').textContent='สมัครสมาชิกสำเร็จ!';
-      document.getElementById('suc-s').innerHTML='ยินดีต้อนรับ <strong>'+fn+'</strong><br>Plan: <strong>'+PL[_plan]+'</strong>';
-      document.getElementById('suc').classList.add('show');
+      // status='trial' | paid=false | billingDate=วันที่ 31
+      await db.collection('companies').doc(cid).set({
+        companyId:cid,companyName:co,ownerUid:uid,ownerName:fn+' '+ln,ownerEmail:em,
+        plan:_plan,planType:_period,status:'trial',paid:false,
+        trialEnd:trialEnd,billingDate:trialEnd,
+        createdAt:firebase.firestore.FieldValue.serverTimestamp()
+      });
+      await db.collection('users').doc(uid).set({
+        uid:uid,email:em,companyId:cid,name:fn+' '+ln,role:'admin',
+        status:'trial',paid:false,trialEnd:trialEnd,
+        createdAt:firebase.firestore.FieldValue.serverTimestamp()
+      });
+      toast('ยินดีต้อนรับ! ทดลองใช้ฟรี 30 วัน','ok',4000);
+      // เข้าใช้งานได้เลย ไม่ต้องชำระเงินก่อน
+      setTimeout(function(){closeAM();window.location.href='Dashboard_template.html';},1500);
     }else{
       err.textContent='กรุณาตั้งค่า Firebase Config ในไฟล์ก่อน';
+      btn.disabled=false;btn.textContent='สมัครสมาชิก (ฟรี 30 วัน)';
     }
   }catch(e){
     var m={'auth/email-already-in-use':'อีเมลนี้มีผู้ใช้งานแล้ว','auth/weak-password':'รหัสผ่านสั้นเกินไป','auth/invalid-email':'รูปแบบอีเมลไม่ถูกต้อง'};
     err.textContent=m[e.code]||e.message;
+    btn.disabled=false;btn.textContent='สมัครสมาชิก (ฟรี 30 วัน)';
   }
-  btn.disabled=false;btn.textContent='สมัครสมาชิก (ฟรี 30 วัน)';
 }
 function goCK(){closeAM();setTimeout(function(){openCK(_plan,_period);},200);}
 
@@ -545,7 +558,23 @@ async function doLog(){
   var btn=document.getElementById('lb');btn.disabled=true;btn.textContent='กำลังเข้าสู่ระบบ...';
   try{
     if(auth){
-      await auth.signInWithEmailAndPassword(em,pw);
+      await auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
+      var cred=await auth.signInWithEmailAndPassword(em,pw);
+      var uid=cred.user.uid;
+      var userDoc=await db.collection('users').doc(uid).get();
+      if(userDoc.exists){
+        var data=userDoc.data();
+        var now=new Date();
+        var status=data.status||'trial';
+        var trialEnd=data.trialEnd?data.trialEnd.toDate():null;
+        // ตรวจสอบ trial หมดอายุ และยังไม่ชำระ
+        if(status==='trial'&&trialEnd&&now>trialEnd&&!data.paid){
+          await auth.signOut();
+          err.textContent='ครบ 30 วันแล้ว กรุณาชำระเงินเพื่อใช้งานต่อ';
+          btn.disabled=false;btn.textContent='เข้าสู่ระบบ';
+          return;
+        }
+      }
       toast('ยินดีต้อนรับกลับ!','ok');
       setTimeout(function(){closeAM();window.location.href='Dashboard_template.html';},1000);
     }else{
@@ -615,12 +644,34 @@ function doPay(){
 }
 async function onPayOK(token){
   var price=PX[_ckP][_ckPR];
-  try{if(db&&auth&&auth.currentUser)await db.collection('payments').add({uid:auth.currentUser.uid,plan:_ckP,period:_ckPR,amount:price,currency:'THB',token:token,status:token.indexOf('demo')===-1?'processing':'demo',createdAt:firebase.firestore.FieldValue.serverTimestamp()});}catch(e){}
+  try{
+    if(db&&auth&&auth.currentUser){
+      var uid=auth.currentUser.uid;
+      var nextBilling=new Date(Date.now()+30*864e5);
+      // บันทึก payment
+      await db.collection('payments').add({uid:uid,plan:_ckP,period:_ckPR,amount:price,currency:'THB',token:token,status:token.indexOf('demo')===-1?'processing':'demo',createdAt:firebase.firestore.FieldValue.serverTimestamp()});
+      // อัปเดต paid=true + วันเก็บเงินครั้งถัดไป
+      await db.collection('users').doc(uid).update({
+        paid:true,status:'active',
+        paidAt:firebase.firestore.FieldValue.serverTimestamp(),
+        nextBillingDate:nextBilling
+      });
+      var userDoc=await db.collection('users').doc(uid).get();
+      if(userDoc.exists&&userDoc.data().companyId){
+        await db.collection('companies').doc(userDoc.data().companyId).update({
+          paid:true,status:'active',
+          paidAt:firebase.firestore.FieldValue.serverTimestamp(),
+          nextBillingDate:nextBilling
+        });
+      }
+    }
+  }catch(e){}
   document.getElementById('spl').textContent=PL[_ckP]+' ('+PPL[_ckPR]+')';
   document.getElementById('spr').textContent='\u0e3f'+price.toLocaleString();
   document.getElementById('cks1').classList.remove('on');document.getElementById('cks2').classList.add('on');
   document.getElementById('cs1').className='ckstp dn';document.getElementById('cs1n').textContent='\u2713';
   document.getElementById('cs2').className='ckstp on';
+  setTimeout(function(){window.location.href='Dashboard_template.html';},2000);
 }
 
 // ════ AD MODAL ════
