@@ -436,7 +436,12 @@ function initFB(){
   try{
     if(typeof firebase==='undefined')return;
     if(FB.apiKey==='YOUR_API_KEY')return;
+    
     if(!firebase.apps.length)firebase.initializeApp(FB);
+    // ถ้า login อยู่แล้ว → ข้ามหน้า login ไป Dashboard ทันที
+    firebase.auth().onAuthStateChanged(function(user){
+      if(user) window.location.replace('Dashboard_template2.html');
+    });
     auth=firebase.auth(); db=firebase.firestore();
   }catch(e){console.warn('Firebase:',e.message);}
 }
@@ -540,7 +545,7 @@ async function doLog(){
     if(auth){
       await auth.signInWithEmailAndPassword(em,pw);
       toast('ยินดีต้อนรับกลับ!','ok');
-      setTimeout(function(){closeAM();window.location.href='Dashboard_template.html';},1000);
+      setTimeout(function(){closeAM();window.location.replace('Dashboard_template2.html');},1000);
     }else{
       err.textContent='กรุณาตั้งค่า Firebase Config ในไฟล์ก่อน';
     }
