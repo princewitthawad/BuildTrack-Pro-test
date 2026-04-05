@@ -168,6 +168,7 @@ footer{padding:32px 24px;text-align:center;border-top:1px solid var(--border2);f
     <button class="nl" onclick="go('features')">ฟีเจอร์</button>
     <button class="nl" onclick="go('pricing')">ราคา</button>
     <button class="nl" onclick="go('ad')">โฆษณา</button>
+    <button class="nl" onclick="openGuestM()" style="color:var(--tx3)">ทดลองดู</button>
     <button class="nc" onclick="openAM('register')">สมัครสมาชิก</button>
     <button class="nl" onclick="openAM('login')">เข้าสู่ระบบ</button>
   </div>
@@ -181,6 +182,7 @@ footer{padding:32px 24px;text-align:center;border-top:1px solid var(--border2);f
   <div class="hb">
     <button class="bp" onclick="openAM('register')">เริ่มทดลองใช้ฟรี 30 วัน</button>
     <button class="bs" onclick="go('features')">ดูฟีเจอร์</button>
+    <button class="bs" onclick="openGuestM()" style="border-color:rgba(255,255,255,.12);color:var(--tx3);font-size:13px">ทดลองดู Dashboard →</button>
   </div>
 </div>
 
@@ -244,7 +246,9 @@ footer{padding:32px 24px;text-align:center;border-top:1px solid var(--border2);f
         <div class="pf"><span class="pfc">✓</span>Admin Portal</div>
         <div class="pf"><span class="pfc">✓</span>Priority Support</div>
         <div class="pf"><span class="pfc">✓</span>API Access</div>
+        <div class="pf"><span class="pfc">✓</span>ปุ่ม Add Project — เพิ่มโครงการได้ไม่จำกัด</div>
         <button class="pbtn pbs" onclick="openWithPlan('enterprise')">เริ่มทดลองใช้ฟรี</button>
+        <button class="pbtn" id="ent-addproj" onclick="goAddProject()" style="display:none;margin-top:8px;background:linear-gradient(135deg,rgba(255,214,0,.18),rgba(255,149,0,.1));border:1px solid rgba(255,214,0,.5);color:var(--gold);font-weight:800">＋ Add Project</button>
       </div>
     </div>
     <p style="font-size:11px;color:var(--tx3);margin-top:18px">ราคาไม่รวม VAT 7% · บัตรเครดิต / โอนเงิน · ยกเลิกได้ทุกเมื่อ</p>
@@ -267,6 +271,39 @@ footer{padding:32px 24px;text-align:center;border-top:1px solid var(--border2);f
   <div>2025 BuildTrack Pro · <a href="#" style="color:var(--tx2)">นโยบายความเป็นส่วนตัว</a></div>
 </footer>
 
+<!-- GUEST MODAL -->
+<div class="mo" id="gm">
+  <div class="mb">
+    <div class="mbar" style="background:linear-gradient(90deg,var(--tx3),var(--tx2))"></div>
+    <div class="mbd">
+      <div id="gm-choice">
+        <div class="mtt">ทดลองดู Dashboard</div>
+        <div class="mts">เข้าดูได้เลยโดยไม่ต้องลงทะเบียน หรือใส่รหัสพิเศษเพื่อ Login</div>
+        <div style="display:grid;gap:10px;margin-top:8px">
+          <button class="sbtn" onclick="goGuest()" style="background:rgba(255,255,255,.06);border-color:var(--border2);color:var(--tx2)">
+            👁 ทดลองดู Dashboard (ไม่ต้องลงทะเบียน)
+          </button>
+          <div style="text-align:center;font-size:11px;color:var(--tx3);margin:2px 0">— หรือ —</div>
+          <button class="sbtn" onclick="showGuestCode()" style="background:rgba(56,139,253,.1);border-color:rgba(56,139,253,.3);color:var(--blue)">
+            🔑 มีรหัสพิเศษ — เข้าสู่ระบบ
+          </button>
+        </div>
+        <div class="mft"><a onclick="closeGM()">ปิด</a></div>
+      </div>
+      <div id="gm-code" style="display:none">
+        <div class="mtt">รหัสพิเศษ</div>
+        <div class="mts">กรอกรหัสที่ได้รับเพื่อเข้าสู่ระบบ</div>
+        <div class="fgrp"><label class="fl">รหัสพิเศษ</label>
+          <input class="fi2" id="gcode" placeholder="กรอกรหัสที่ได้รับ" type="password" onkeydown="if(event.key==='Enter')checkGuestCode()">
+        </div>
+        <div class="ferr" id="gcode-err"></div>
+        <button class="sbtn" onclick="checkGuestCode()">ยืนยันรหัส</button>
+        <button style="width:100%;margin-top:8px;background:none;border:none;color:var(--tx3);font-size:12px;cursor:pointer;font-family:var(--f);padding:6px" onclick="document.getElementById('gm-choice').style.display='block';document.getElementById('gm-code').style.display='none'">← ย้อนกลับ</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- AUTH MODAL -->
 <div class="mo" id="am">
   <div class="mb">
@@ -278,25 +315,52 @@ footer{padding:32px 24px;text-align:center;border-top:1px solid var(--border2);f
       </div>
       <!-- Register -->
       <div id="rf">
-        <div class="mtt">เริ่มต้นใช้งาน</div>
-        <div class="mts">ทดลองใช้ฟรี 30 วัน — ไม่ต้องใส่บัตรเครดิต</div>
-        <div class="fg2">
-          <div class="fgrp"><label class="fl">ชื่อ *</label><input class="fi2" id="rfn" placeholder="ชื่อ" autocomplete="given-name"></div>
-          <div class="fgrp"><label class="fl">นามสกุล *</label><input class="fi2" id="rln" placeholder="นามสกุล" autocomplete="family-name"></div>
-        </div>
-        <div class="fgrp"><label class="fl">ชื่อบริษัท *</label><input class="fi2" id="rco" placeholder="บริษัท ก่อสร้าง จำกัด" autocomplete="organization"></div>
-        <div class="fgrp"><label class="fl">อีเมล *</label><input class="fi2" id="rem" type="email" placeholder="email@company.com" autocomplete="email"></div>
-        <div class="fgrp"><label class="fl">รหัสผ่าน * (อย่างน้อย 8 ตัว)</label><input class="fi2" id="rpw" type="password" placeholder="รหัสผ่าน" autocomplete="new-password"></div>
-        <div class="fgrp"><label class="fl">Plan</label>
-          <div class="ps2">
-            <div class="po on" id="op-s" onclick="selP('starter')"><div class="pon">Starter</div><div class="pop">฿990/เดือน</div></div>
-            <div class="po" id="op-p" onclick="selP('pro')"><div class="pon">Pro</div><div class="pop">฿1,990/เดือน</div></div>
-            <div class="po" id="op-e" onclick="selP('enterprise')"><div class="pon">Enterprise</div><div class="pop">฿3,990/เดือน</div></div>
+        <!-- Step 1: ข้อมูลบัญชี -->
+        <div id="rf-s1">
+          <div class="mtt">เริ่มต้นใช้งาน</div>
+          <div class="mts">ทดลองใช้ฟรี 30 วัน — กรอกบัตรเพื่อต่ออายุอัตโนมัติหลัง 30 วัน</div>
+          <div class="fg2">
+            <div class="fgrp"><label class="fl">ชื่อ *</label><input class="fi2" id="rfn" placeholder="ชื่อ" autocomplete="given-name"></div>
+            <div class="fgrp"><label class="fl">นามสกุล *</label><input class="fi2" id="rln" placeholder="นามสกุล" autocomplete="family-name"></div>
           </div>
+          <div class="fgrp"><label class="fl">ชื่อบริษัท *</label><input class="fi2" id="rco" placeholder="บริษัท ก่อสร้าง จำกัด" autocomplete="organization"></div>
+          <div class="fgrp"><label class="fl">อีเมล *</label><input class="fi2" id="rem" type="email" placeholder="email@company.com" autocomplete="email"></div>
+          <div class="fgrp"><label class="fl">รหัสผ่าน * (อย่างน้อย 8 ตัว)</label><input class="fi2" id="rpw" type="password" placeholder="รหัสผ่าน" autocomplete="new-password"></div>
+          <div class="fgrp"><label class="fl">Plan</label>
+            <div class="ps2">
+              <div class="po on" id="op-s" onclick="selP('starter')"><div class="pon">Starter</div><div class="pop">฿990/เดือน</div></div>
+              <div class="po" id="op-p" onclick="selP('pro')"><div class="pon">Pro</div><div class="pop">฿1,990/เดือน</div></div>
+              <div class="po" id="op-e" onclick="selP('enterprise')"><div class="pon">Enterprise</div><div class="pop">฿3,990/เดือน</div></div>
+            </div>
+          </div>
+          <div class="ferr" id="re"></div>
+          <button class="sbtn" id="rb" onclick="doRegStep1()">ถัดไป — กรอกข้อมูลบัตร →</button>
+          <div class="mft">มีบัญชีแล้ว? <a onclick="swTab('login')">เข้าสู่ระบบ</a> &nbsp;·&nbsp; <a onclick="closeAM()">ปิด</a></div>
         </div>
-        <div class="ferr" id="re"></div>
-        <button class="sbtn" id="rb" onclick="doReg()">สมัครสมาชิก (ฟรี 30 วัน)</button>
-        <div class="mft">มีบัญชีแล้ว? <a onclick="swTab('login')">เข้าสู่ระบบ</a> &nbsp;·&nbsp; <a onclick="closeAM()">ปิด</a></div>
+        <!-- Step 2: ข้อมูลบัตรเครดิต -->
+        <div id="rf-s2" style="display:none">
+          <div class="mtt">ข้อมูลบัตรเครดิต</div>
+          <div class="mts" id="rf-s2-sub">ทดลองฟรี 30 วัน จากนั้นจะหักเงินอัตโนมัติ</div>
+          <div style="background:rgba(0,230,118,.06);border:1px solid rgba(0,230,118,.2);border-radius:9px;padding:10px 13px;margin-bottom:14px;font-size:12px;color:var(--tx2);line-height:1.7">
+            <span style="color:var(--green);font-weight:700">✓ ไม่หักเงินวันนี้</span> — บัตรจะถูกเก็บไว้เพื่อหักเงินอัตโนมัติหลังครบ 30 วัน<br>
+            <span style="color:var(--tx3)" id="rf-billing-info">วันที่เก็บเงิน: กำลังคำนวณ...</span>
+          </div>
+          <div class="ckcb">
+            <span class="ckcd on" id="rcv">VISA</span>
+            <span class="ckcd on" id="rcm">Master</span>
+            <span class="ckcd on" id="rcj">JCB</span>
+            <span class="ckcd on" id="rca">AMEX</span>
+          </div>
+          <div class="fgrp"><label class="fl">ชื่อบนบัตร *</label><input class="fi2" id="rccn" placeholder="SOMCHAI JAIDEE" autocomplete="cc-name" autocorrect="off" autocapitalize="characters" spellcheck="false"></div>
+          <div class="fgrp"><label class="fl">หมายเลขบัตร *</label><input class="fi2" id="rcnum" placeholder="0000  0000  0000  0000" maxlength="22" autocomplete="cc-number" inputmode="numeric" oninput="fRC(this)"></div>
+          <div class="fg2">
+            <div class="fgrp"><label class="fl">หมดอายุ (MM/YY) *</label><input class="fi2" id="rcexp" placeholder="MM / YY" maxlength="7" autocomplete="cc-exp" inputmode="numeric" oninput="fRE(this)"></div>
+            <div class="fgrp"><label class="fl">CVV *</label><input class="fi2" id="rccvv" placeholder="123" maxlength="4" autocomplete="cc-csc" inputmode="numeric" type="password"></div>
+          </div>
+          <div class="ferr" id="re2"></div>
+          <button class="sbtn" id="rb2" onclick="doReg()">เริ่มทดลองใช้ฟรี 30 วัน</button>
+          <button style="width:100%;margin-top:8px;background:none;border:none;color:var(--tx3);font-size:12px;cursor:pointer;font-family:var(--f);padding:6px" onclick="document.getElementById('rf-s1').style.display='block';document.getElementById('rf-s2').style.display='none'">← ย้อนกลับ</button>
+        </div>
       </div>
       <!-- Login -->
       <div id="lf" style="display:none">
@@ -499,8 +563,8 @@ function swTab(tab){
   document.getElementById('suc').classList.remove('show');
 }
 
-// ════ REGISTER ════
-async function doReg(){
+// ════ REGISTER — Step 1: validate ข้อมูลบัญชี ════
+function doRegStep1(){
   var fn=document.getElementById('rfn').value.trim();
   var ln=document.getElementById('rln').value.trim();
   var co=document.getElementById('rco').value.trim();
@@ -511,42 +575,101 @@ async function doReg(){
   if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)){err.textContent='รูปแบบอีเมลไม่ถูกต้อง';return;}
   if(pw.length<8){err.textContent='รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร';return;}
   err.textContent='';
-  var btn=document.getElementById('rb');
-  btn.disabled=true;btn.textContent='กำลังสมัคร...';
-  try{
-    if(auth&&db){
-      var trialEnd=new Date(Date.now()+30*864e5);
-      // LOCAL persistence — จำ session ข้ามหน้าได้
-      await auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
-      var cred=await auth.createUserWithEmailAndPassword(em,pw);
-      var uid=cred.user.uid;
-      var cid=co.toLowerCase().replace(/[^a-z0-9]/g,'_').slice(0,20)+'_'+Date.now().toString(36);
-      // status='trial' | paid=false | billingDate=วันที่ 31
-      await db.collection('companies').doc(cid).set({
-        companyId:cid,companyName:co,ownerUid:uid,ownerName:fn+' '+ln,ownerEmail:em,
-        plan:_plan,planType:_period,status:'trial',paid:false,
-        trialEnd:trialEnd,billingDate:trialEnd,
-        createdAt:firebase.firestore.FieldValue.serverTimestamp()
+  // แสดง billing date
+  var bd=new Date(Date.now()+30*864e5);
+  var bds=bd.getDate()+'/'+(bd.getMonth()+1)+'/'+bd.getFullYear();
+  document.getElementById('rf-billing-info').textContent='วันที่เก็บเงิน: '+bds+' (฿'+PX[_plan]['monthly'].toLocaleString()+'/เดือน)';
+  document.getElementById('rf-s2-sub').textContent='ทดลองฟรี 30 วัน จากนั้นจะหัก ฿'+PX[_plan]['monthly'].toLocaleString()+' อัตโนมัติ';
+  // ไปหน้า Step 2
+  document.getElementById('rf-s1').style.display='none';
+  document.getElementById('rf-s2').style.display='block';
+}
+
+// ════ REGISTER — Step 2: tokenize บัตร + สร้าง account ════
+async function doReg(){
+  var cn=document.getElementById('rccn').value.trim();
+  var num=document.getElementById('rcnum').value.replace(/\s/g,'');
+  var exp=document.getElementById('rcexp').value.replace(/\s/g,'').split('/');
+  var cvv=document.getElementById('rccvv').value.trim();
+  var err=document.getElementById('re2');
+  if(!cn){err.textContent='กรุณาใส่ชื่อบนบัตร';return;}
+  if(num.length<15){err.textContent='หมายเลขบัตรไม่ถูกต้อง (ต้องมี 15-16 หลัก)';return;}
+  if(exp.length<2||!exp[1]){err.textContent='วันหมดอายุไม่ถูกต้อง';return;}
+  if(!cvv){err.textContent='กรุณาใส่ CVV';return;}
+  err.textContent='';
+  var btn=document.getElementById('rb2');
+  btn.disabled=true;btn.textContent='กำลังตรวจสอบบัตร...';
+
+  // tokenize บัตรผ่าน Omise (ไม่หักเงิน)
+  function tokenizeAndRegister(cardToken){
+    btn.textContent='กำลังสร้างบัญชี...';
+    var fn=document.getElementById('rfn').value.trim();
+    var ln=document.getElementById('rln').value.trim();
+    var co=document.getElementById('rco').value.trim();
+    var em=document.getElementById('rem').value.trim();
+    var pw=document.getElementById('rpw').value;
+    var trialEnd=new Date(Date.now()+30*864e5);
+    auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL)
+      .then(function(){return auth.createUserWithEmailAndPassword(em,pw);})
+      .then(function(cred){
+        var uid=cred.user.uid;
+        var cid=co.toLowerCase().replace(/[^a-z0-9]/g,'_').slice(0,20)+'_'+Date.now().toString(36);
+        var batch=db.batch();
+        batch.set(db.collection('companies').doc(cid),{
+          companyId:cid,companyName:co,ownerUid:uid,ownerName:fn+' '+ln,ownerEmail:em,
+          plan:_plan,planType:_period,status:'trial',paid:false,
+          cardToken:cardToken,cardName:cn,cardLast4:num.slice(-4),
+          trialEnd:trialEnd,billingDate:trialEnd,
+          createdAt:firebase.firestore.FieldValue.serverTimestamp()
+        });
+        batch.set(db.collection('users').doc(uid),{
+          uid:uid,email:em,companyId:cid,name:fn+' '+ln,role:'admin',
+          status:'trial',paid:false,
+          cardToken:cardToken,cardLast4:num.slice(-4),
+          trialEnd:trialEnd,billingDate:trialEnd,
+          createdAt:firebase.firestore.FieldValue.serverTimestamp()
+        });
+        return batch.commit();
+      })
+      .then(function(){
+        toast('ยินดีต้อนรับ! ทดลองใช้ฟรี 30 วัน — จะหักเงินอัตโนมัติหลังครบกำหนด','ok',5000);
+        setTimeout(function(){closeAM();window.location.href='Dashboard_template.html';},1800);
+      })
+      .catch(function(e){
+        var m={'auth/email-already-in-use':'อีเมลนี้มีผู้ใช้งานแล้ว','auth/weak-password':'รหัสผ่านสั้นเกินไป','auth/invalid-email':'รูปแบบอีเมลไม่ถูกต้อง'};
+        err.textContent=m[e.code]||e.message;
+        btn.disabled=false;btn.textContent='เริ่มทดลองใช้ฟรี 30 วัน';
       });
-      await db.collection('users').doc(uid).set({
-        uid:uid,email:em,companyId:cid,name:fn+' '+ln,role:'admin',
-        status:'trial',paid:false,trialEnd:trialEnd,
-        createdAt:firebase.firestore.FieldValue.serverTimestamp()
-      });
-      toast('ยินดีต้อนรับ! ทดลองใช้ฟรี 30 วัน','ok',4000);
-      // เข้าใช้งานได้เลย ไม่ต้องชำระเงินก่อน
-      setTimeout(function(){closeAM();window.location.href='Dashboard_template.html';},1500);
-    }else{
-      err.textContent='กรุณาตั้งค่า Firebase Config ในไฟล์ก่อน';
-      btn.disabled=false;btn.textContent='สมัครสมาชิก (ฟรี 30 วัน)';
-    }
-  }catch(e){
-    var m={'auth/email-already-in-use':'อีเมลนี้มีผู้ใช้งานแล้ว','auth/weak-password':'รหัสผ่านสั้นเกินไป','auth/invalid-email':'รูปแบบอีเมลไม่ถูกต้อง'};
-    err.textContent=m[e.code]||e.message;
-    btn.disabled=false;btn.textContent='สมัครสมาชิก (ฟรี 30 วัน)';
+  }
+
+  if(typeof Omise!=='undefined'&&OMISE_KEY.indexOf('YOUR')===-1){
+    var td={name:cn,number:num,expiration_month:parseInt(exp[0]),expiration_year:parseInt('20'+exp[1].trim()),security_code:cvv};
+    Omise.createToken('card',td,function(s,r){
+      if(r.object==='error'){
+        err.textContent='บัตรไม่ถูกต้อง: '+r.message;
+        btn.disabled=false;btn.textContent='เริ่มทดลองใช้ฟรี 30 วัน';
+        return;
+      }
+      tokenizeAndRegister(r.id);
+    });
+  }else{
+    // Demo mode — บันทึก token จำลอง
+    tokenizeAndRegister('demo_card_'+Date.now());
   }
 }
 function goCK(){closeAM();setTimeout(function(){openCK(_plan,_period);},200);}
+
+// helper: format card number input ในฟอร์มสมัคร
+function fRC(el){
+  var v=el.value.replace(/\D/g,'').slice(0,16);
+  el.value=v.replace(/(\d{4})(?=\d)/g,'$1  ');
+  ['rcv','rcm','rcj','rca'].forEach(function(x){document.getElementById(x).classList.remove('on');});
+  if(/^4/.test(v))document.getElementById('rcv').classList.add('on');
+  else if(/^5[1-5]/.test(v))document.getElementById('rcm').classList.add('on');
+  else if(/^35/.test(v))document.getElementById('rcj').classList.add('on');
+  else if(/^3[47]/.test(v))document.getElementById('rca').classList.add('on');
+}
+function fRE(el){var v=el.value.replace(/\D/g,'');if(v.length>=2)v=v.slice(0,2)+' / '+v.slice(2,4);el.value=v;}
 
 // ════ LOGIN ════
 async function doLog(){
@@ -674,6 +797,65 @@ async function onPayOK(token){
   setTimeout(function(){window.location.href='Dashboard_template.html';},2000);
 }
 
+// ════ GUEST MODAL ════
+var GUEST_CODE = 'SIMON2025'; // ← เปลี่ยนรหัสได้ที่นี่
+
+function openGuestM(){
+  document.getElementById('gm').classList.add('open');
+  document.getElementById('gm-choice').style.display='block';
+  document.getElementById('gm-code').style.display='none';
+  document.getElementById('gcode').value='';
+  document.getElementById('gcode-err').textContent='';
+}
+function closeGM(){document.getElementById('gm').classList.remove('open');}
+function goGuest(){
+  // เข้า Dashboard แบบ Guest ไม่ต้อง login
+  window.location.href='Dashboard_template.html?guest=1';
+}
+function showGuestCode(){
+  document.getElementById('gm-choice').style.display='none';
+  document.getElementById('gm-code').style.display='block';
+  setTimeout(function(){document.getElementById('gcode').focus();},100);
+}
+function checkGuestCode(){
+  var code=document.getElementById('gcode').value.trim();
+  var err=document.getElementById('gcode-err');
+  if(!code){err.textContent='กรุณากรอกรหัส';return;}
+  if(code===GUEST_CODE){
+    // รหัสถูก — เปิด Login modal
+    closeGM();
+    setTimeout(function(){openAM('login');},200);
+  }else{
+    err.textContent='รหัสไม่ถูกต้อง กรุณาลองใหม่';
+    document.getElementById('gcode').value='';
+    document.getElementById('gcode').focus();
+  }
+}
+
+// ════ ENTERPRISE ADD PROJECT ════
+function goAddProject(){
+  window.location.href='Add_project.html';
+}
+function checkEnterpriseBtn(){
+  // แสดงปุ่ม Add Project เฉพาะ Enterprise ที่ชำระเงินแล้ว
+  if(!auth||!db)return;
+  auth.onAuthStateChanged(function(user){
+    if(!user)return;
+    db.collection('users').doc(user.uid).get().then(function(doc){
+      if(!doc.exists)return;
+      var d=doc.data();
+      var isEnterprisePaid=d.paid===true&&(d.status==='active')&&d.companyId;
+      if(!isEnterprisePaid)return;
+      db.collection('companies').doc(d.companyId).get().then(function(cd){
+        if(cd.exists&&cd.data().plan==='enterprise'&&cd.data().paid===true){
+          var btn=document.getElementById('ent-addproj');
+          if(btn)btn.style.display='block';
+        }
+      });
+    });
+  });
+}
+
 // ════ AD MODAL ════
 function openAdM(){document.getElementById('adm').classList.add('open');document.getElementById('ads2').style.display='none';document.getElementById('adf').style.display='block';}
 function closeAdM(){document.getElementById('adm').classList.remove('open');}
@@ -686,10 +868,19 @@ async function doAd(){
 }
 
 // ════ CLOSE ON BACKDROP + ESC ════
-['am','cko','adm'].forEach(function(id){
-  document.getElementById(id).addEventListener('click',function(e){if(e.target===this){if(id==='am')closeAM();else if(id==='cko')closeCK();else closeAdM();}});
+['am','cko','adm','gm'].forEach(function(id){
+  document.getElementById(id).addEventListener('click',function(e){
+    if(e.target===this){
+      if(id==='am')closeAM();
+      else if(id==='cko')closeCK();
+      else if(id==='gm')closeGM();
+      else closeAdM();
+    }
+  });
 });
-document.addEventListener('keydown',function(e){if(e.key==='Escape'){closeAM();closeCK();closeAdM();}});
+document.addEventListener('keydown',function(e){if(e.key==='Escape'){closeAM();closeCK();closeAdM();closeGM();}});
+// ตรวจสอบสิทธิ์ Enterprise หลัง DOM โหลด
+document.addEventListener('DOMContentLoaded',function(){setTimeout(checkEnterpriseBtn,1500);});
 </script>
 </body>
 </html>
