@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>System Intelligent Management On Network — ระบบติดตามงานก่อสร้าง SIMON</title>
+<title>SIMON — System Intelligent Management On Network</title>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/firebase@10.7.1/firebase-app-compat.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/firebase@10.7.1/firebase-auth-compat.js"></script>
@@ -163,7 +163,7 @@ footer{padding:32px 24px;text-align:center;border-top:1px solid var(--border2);f
 <body>
 
 <nav>
-  <a class="logo" href="#"><div class="logo-i">B</div>BuildTrack Pro</a>
+  <a class="logo" href="#"><div class="logo-i">S</div>SIMON</a>
   <div class="nav-r">
     <button class="nl" onclick="go('features')">ฟีเจอร์</button>
     <button class="nl" onclick="go('pricing')">ราคา</button>
@@ -176,7 +176,7 @@ footer{padding:32px 24px;text-align:center;border-top:1px solid var(--border2);f
 <div class="hero" id="home">
   <div class="hero-glow"></div>
   <div class="hbadge"><span class="dot"></span>ระบบพร้อมใช้งาน</div>
-  <h1>ติดตามงานก่อสร้าง<br><span>ได้ทุกที่ ทุกเวลา</span></h1>
+  <h1>System Intelligent Management<br><span>On Network</span></h1>
   <p class="hs">แพลตฟอร์มรายงานความคืบหน้างานก่อสร้าง พร้อม AI วิเคราะห์ จัดการทีม และซิงค์ข้อมูลแบบ Real-time สำหรับบริษัทก่อสร้างไทย</p>
   <div class="hb">
     <button class="bp" onclick="openAM('register')">เริ่มทดลองใช้ฟรี 30 วัน</button>
@@ -438,10 +438,6 @@ function initFB(){
     if(FB.apiKey==='YOUR_API_KEY')return;
     
     if(!firebase.apps.length)firebase.initializeApp(FB);
-    // ถ้า login อยู่แล้ว → ข้ามหน้า login ไป Dashboard ทันที
-    firebase.auth().onAuthStateChanged(function(user){
-      if(user) window.location.replace('Dashboard_template.html');
-    });
     auth=firebase.auth(); db=firebase.firestore();
   }catch(e){console.warn('Firebase:',e.message);}
 }
