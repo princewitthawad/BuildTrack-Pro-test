@@ -346,7 +346,7 @@ footer{padding:32px 24px;text-align:center;border-top:1px solid var(--border2);f
           <span class="ckcd on" id="ca">AMEX</span>
         </div>
         <div class="ckfg"><label class="ckfl">ชื่อบนบัตร</label><input class="ckin" id="ccn" placeholder="SOMCHAI JAIDEE" autocomplete="cc-name" autocorrect="off" autocapitalize="characters" spellcheck="false"></div>
-        <div class="ckfg"><label class="ckfl">หมายเลขบัตร</label><input class="ckin" id="cnum" placeholder="0000  0000  0000  0000" maxlength="19" autocomplete="cc-number" inputmode="numeric" oninput="fC(this)"></div>
+        <div class="ckfg"><label class="ckfl">หมายเลขบัตร</label><input class="ckin" id="cnum" placeholder="0000  0000  0000  0000" maxlength="22" autocomplete="cc-number" inputmode="numeric" oninput="fC(this)"></div>
         <div class="ckrow">
           <div class="ckfg"><label class="ckfl">หมดอายุ (MM/YY)</label><input class="ckin" id="cexp" placeholder="MM / YY" maxlength="7" autocomplete="cc-exp" inputmode="numeric" oninput="fE(this)"></div>
           <div class="ckfg"><label class="ckfl">CVV</label><input class="ckin" id="ccvv" placeholder="123" maxlength="4" autocomplete="cc-csc" inputmode="numeric" type="password"></div>
@@ -439,10 +439,12 @@ function initFB(){
     if(!firebase.apps.length)firebase.initializeApp(FB);
     auth=firebase.auth();
     db=firebase.firestore();
-    // ปิด session อัตโนมัติ — ไม่จำ login ข้ามหน้า
-    auth.setPersistence(firebase.auth.Auth.Persistence.NONE).catch(function(){});
-    // ถ้ามี session เก่าค้างอยู่ ให้ sign out ออกทันที
-    auth.signOut().catch(function(){});
+    // ใช้ SESSION persistence — จำ login ในแท็บเดียว ไม่ข้ามหน้าอัตโนมัติ
+    auth.setPersistence(firebase.auth.Auth.Persistence.SESSION)
+      .then(function(){
+        // sign out session เก่าทุกครั้งที่โหลดหน้า index
+        return auth.signOut();
+      }).catch(function(){});
   }catch(e){console.warn('Firebase:',e.message);}
 }
 if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',initFB);}else{initFB();}
